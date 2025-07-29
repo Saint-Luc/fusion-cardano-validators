@@ -6,7 +6,7 @@ use cardano/transaction.{Output, OutputReference, Transaction}
 use finite_interval.{expect_finite_interval}
 use tagged_values.{ExpectedPayment, tagged_values_out_match}
 
-pub type TakerDatum {
+pub type MakerDatum {
   beneficiary: PaymentCredential,
   resolver: PaymentCredential,
   deposit_amount: Lovelace,
@@ -25,12 +25,12 @@ pub type Redeemer {
 
 validator make_escrow {
   spend(
-    datum: Option<TakerDatum>,
+    datum: Option<MakerDatum>,
     redeemer: Redeemer,
     ref: OutputReference,
     tx: Transaction,
   ) {
-    expect Some(TakerDatum {
+    expect Some(MakerDatum {
       beneficiary,
       resolver,
       deposit_amount,
