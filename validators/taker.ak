@@ -2,7 +2,7 @@ use aiken/collection/list
 use aiken/crypto.{blake2b_256, Blake2b_256, Hash}
 
 use cardano/address.{PaymentCredential}
-use cardano/assets.{Value, merge, negate}
+use cardano/assets.{from_lovelace, Lovelace, merge, negate}
 use cardano/transaction.{Output, OutputReference, Transaction}
 
 use tagged_values.{ExpectedPayment, tagged_values_out_match}
@@ -12,7 +12,7 @@ pub type TakerDatum {
     beneficiary: PaymentCredential,
     resolver: PaymentCredential,
 
-    deposit_amount: Value,
+    deposit_amount: Lovelace,
 
     secret_hash: Hash<Blake2b_256, ByteArray>,
 
@@ -38,6 +38,7 @@ validator taker_escrow {
             resolver_unlock,
             public_unlock,
         }) = datum
+        let deposit_amount = from_lovelace(deposit_amount)
 
         let (low, high) = expect_finite_interval(tx.validity_range)
 
