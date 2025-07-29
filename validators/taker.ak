@@ -1,11 +1,12 @@
-use aiken/cbor.{serialise}
 use aiken/collection/list
 use aiken/crypto.{blake2b_256, Blake2b_256, Hash}
-use aiken/interval.{Interval, IntervalBound, Finite}
 
 use cardano/address.{PaymentCredential}
-use cardano/assets.{Value, merge, negate, zero}
-use cardano/transaction.{DatumHash, InlineDatum, Output, OutputReference, Transaction}
+use cardano/assets.{Value, merge, negate}
+use cardano/transaction.{Output, OutputReference, Transaction}
+
+use tagged_values.{ExpectedPayment, tagged_values_out_match}
+use finite_interval.{expect_finite_interval}
 
 pub type TakerDatum {
     beneficiary: PaymentCredential,
@@ -24,69 +25,6 @@ pub type TakerDatum {
 pub type Redeemer {
     secret: ByteArray,
     resolver: PaymentCredential,
-}
-
-//Expects the interval to have two finite bounds, and returns those bounds as inclusive (offsetting if not).
-fn expect_finite_interval(interval: Interval<Int>) -> (Int, Int) {
-    expect Interval{
-        lower_bound: IntervalBound{bound_type: Finite(low), is_inclusive: low_inclusive},
-        upper_bound: IntervalBound{bound_type: Finite(high), is_inclusive: high_inclusive},
-    } = interval
-    let low = when low_inclusive is {
-        False -> low + 1
-        True -> low
-    }
-    let high = when high_inclusive is {
-        True -> high
-        False -> high - 1
-    }
-    (low, high)
-}
-
-pub type ExpectedPayment {
-    credential: PaymentCredential,
-    value: Value,
-}
-
-fn is_tagged(output: Output, ref: OutputReference) -> Bool {
-    when output.datum is {
-        InlineDatum(datum) -> if datum is OutputReference {
-            datum == ref
-        } else {
-            False
-        }
-        DatumHash(datum_hash) -> datum_hash == blake2b_256(serialise(ref))
-        _ -> False
-    }
-}
-
-fn tagged_values_out_match(
-    outputs: List<Output>,
-    beneficiary: ExpectedPayment,
-    resolver: ExpectedPayment,
-    ref: OutputReference,
-) -> Bool {
-    let (beneficiary_value, resolver_value) = list.foldl(
-        outputs,
-        (zero, zero),
-        fn(output, acc) {
-            if is_tagged(output, ref) {
-                if output.address.payment_credential == beneficiary.credential {
-                    (merge(acc.1st, output.value), acc.2nd)
-                } else if output.address.payment_credential == resolver.credential {
-                    (acc.1st, merge(acc.2nd, output.value))
-                } else {
-                    acc
-                }
-            } else {
-                acc
-            }
-        }
-    )
-    and {
-        beneficiary_value == beneficiary.value,
-        resolver_value == resolver.value,
-    }
 }
 
 validator taker_escrow {
