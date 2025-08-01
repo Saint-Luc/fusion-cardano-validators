@@ -3,11 +3,11 @@ version = "0.0.0"
 compiler = "v1.1.19"
 plutus = "v3"
 license = "Apache-2.0"
-description = "Aiken contracts for project 'fructose-outburst/fusion'"
+description = "Aiken contracts for project 'Saint-Luc/fusion-cardano-validator'"
 
 [repository]
-user = "fructose-outburst"
-project = "fusion"
+user = "Saint-Luc"
+project = "fusion-cardano-validator"
 platform = "github"
 
 [[dependencies]]
